@@ -1,30 +1,37 @@
-# Drag and drop notes
+npm install tw-animate-css
+npm install -D tailwindcss@3 postcss autoprefixer
+npx tailwindcss init -p
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+cd server
+# Install backend dependencies
+npm init -y
+npm install express mongoose bcryptjs jsonwebtoken cors dotenv helmet express-rate-limit
+npm install -D nodemon
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/nanditas-projects-fa8ff9f6/v0-drag-and-drop-notes)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/d9pu8CtsVVq)
+# In a new terminal tab
+cd .. # Go back to root directory
 
-## Overview
+# Install frontend dependencies
+npm install
+npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+npm install react-markdown remark-gfm
+npm install date-fns
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+npm run build && npm start (front end)
+Backend:
+cd server
+npm run dev
 
-## Deployment
 
-Your project is live at:
+1) Ai assistant
+2) drag and drop
+3) calender viewing the note
+4) upcoming reviews
+5) whole review part
+6) theme part
+7) the longer you study the plant grows
 
-**[https://vercel.com/nanditas-projects-fa8ff9f6/v0-drag-and-drop-notes](https://vercel.com/nanditas-projects-fa8ff9f6/v0-drag-and-drop-notes)**
 
-## Build your app
 
-Continue building your app on:
 
-**[https://v0.app/chat/projects/d9pu8CtsVVq](https://v0.app/chat/projects/d9pu8CtsVVq)**
 
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
