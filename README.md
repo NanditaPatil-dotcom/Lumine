@@ -1,3 +1,4 @@
+# installing frontend deps:
 npm install tw-animate-css
 npm install -D tailwindcss@3 postcss autoprefixer
 npx tailwindcss init -p
@@ -13,15 +14,48 @@ cd .. # Go back to root directory
 
 # Install frontend dependencies
 npm install
+
 npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+
 npm install react-markdown remark-gfm
+
 npm install date-fns
 
+if they show error, write next to them --legacy-peer-deps
+Ex: npm install date-fns --legacy-peer-deps
+
+
+
+
 npm run build && npm start (front end)
-Backend:
+# Backend:
 cd server
 npm run dev
 
+# .env file:
+cd server
+
+MONGODB_URI=mongodb://127.0.0.1:27017/notesapp
+
+JWT_SECRET=e1b6c770f4fed46a3b6e190b05d7af59
+
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
+
+GEMINI_API_KEY=AIzaSyARpQnuyZuC4UfOHIT8sb2SLuS43q_Vk18
+
+VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CVr2LhKALKlaDK71A-1s1fmh_SGJu80PWUOIMc
+VAPID_PRIVATE_KEY=uAhx_cbXBK2ZTncsN0fQd-hD7pNmRnDi6YKuH7HRCgA
+VAPID_EMAIL=nanditanpatil14@gmail.com
+
+# .env.local:
+
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CVr2LhKALKlaDK71A-1s1fmh_SGJu80PWUOIMc
+
+
+# whats missing?
 
 1) Ai assistant
 2) drag and drop
