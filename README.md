@@ -90,6 +90,9 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CV
 5) whole review part
 6) theme part (done)
 7) the longer you study the plant grows
+8) adding the color to the note as your choice
+# suggestions:
+1)whiteboard
 
 
 
