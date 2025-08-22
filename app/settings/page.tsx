@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/contexts/auth-context"
+import { useTheme } from "next-themes"
 
 export default function SettingsPage() {
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
 
   return (
     <ProtectedLayout>
@@ -136,13 +138,25 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   <Label>Theme</Label>
                   <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant={theme === "light" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("light")}
+                    >
                       Light
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant={theme === "dark" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("dark")}
+                    >
                       Dark
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant={theme === "system" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("system")}
+                    >
                       System
                     </Button>
                   </div>
