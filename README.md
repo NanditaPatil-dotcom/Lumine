@@ -88,7 +88,7 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CV
 3) calender viewing the note
 4) upcoming reviews
 5) whole review part
-6) theme part
+6) theme part (done)
 7) the longer you study the plant grows
 
 
