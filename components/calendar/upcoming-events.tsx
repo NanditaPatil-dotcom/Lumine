@@ -67,7 +67,7 @@ export function UpcomingEvents() {
       </CardHeader>
       <CardContent className="space-y-3">
         {upcomingEvents.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No upcoming events</p>
+          <p className="text-sm text-muted-foreground text-center  py-4">No upcoming events</p>
         ) : (
           upcomingEvents.map((event) => (
             <div

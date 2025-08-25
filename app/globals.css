@@ -128,3 +128,15 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* background image from canva ss*/
+.bg {
+  @apply text-foreground font-sans;
+  background-image: url('/bgsample.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+

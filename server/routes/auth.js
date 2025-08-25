@@ -54,7 +54,10 @@ router.post(
 )
 
 // Login
-router.post("/login", [body("email").isEmail().normalizeEmail(), body("password").exists()], async (req, res) => {
+router.post("/login", [
+  body("email").isEmail().normalizeEmail(),
+  body("password").exists()
+], async (req, res) => {
   try {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {

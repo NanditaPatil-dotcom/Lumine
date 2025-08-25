@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react"
 import { useCalendar } from "@/contexts/calendar-context"
 import { cn } from "@/lib/utils"
 
+
 interface CalendarGridProps {
   onCreateEvent?: (date: Date) => void
 }
@@ -92,7 +93,7 @@ export function CalendarGrid({ onCreateEvent }: CalendarGridProps) {
           key={day}
           onClick={() => handleDateClick(day)}
           className={cn(
-            "aspect-square p-2 text-sm border rounded-md cursor-pointer hover:bg-muted/50 transition-colors relative",
+            "aspect-square p-2 text-sm bg-black/50 rounded-md cursor-pointer hover:bg-muted/50 transition-colors relative",
             isToday && "bg-primary text-primary-foreground hover:bg-primary/90",
             isSelected && !isToday && "bg-accent text-accent-foreground",
             hasEvents && !isToday && !isSelected && "border-accent",
@@ -107,7 +108,7 @@ export function CalendarGrid({ onCreateEvent }: CalendarGridProps) {
                   className={cn(
                     "w-1.5 h-1.5 rounded-full",
                     event.type === "study" && "bg-blue-500",
-                    event.type === "review" && "bg-accent",
+                    event.type === "review" && "bg-red-500",
                     event.type === "reminder" && "bg-orange-500",
                     event.type === "custom" && "bg-purple-500",
                   )}
@@ -139,8 +140,8 @@ export function CalendarGrid({ onCreateEvent }: CalendarGridProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+        <div class="title5" className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 font-inter">
             <CalendarIcon className="h-5 w-5" />
             {monthNames[month]} {year}
           </CardTitle>

@@ -3,6 +3,9 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useAuth } from "./auth-context"
+import { Inter } from "next/font/google"
+
+
 
 interface CalendarEvent {
   id: string

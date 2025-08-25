@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Brain, Calendar, Search, Sparkles } from "lucide-react"
+import { Inter } from "next/font/google"
+import {Lekton} from "next/font/google"
+
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -103,3 +106,4 @@ export default function HomePage() {
     </div>
   )
 }
+

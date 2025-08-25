@@ -1,9 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Manrope } from "next/font/google"
+import { Geist, Inter, Manrope, Lekton} from "next/font/google"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
+import ClientLayout from "./client-layout"
+
 
 const geist = Geist({
   subsets: ["latin"],
@@ -11,10 +13,24 @@ const geist = Geist({
   variable: "--font-geist",
 })
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+})
+
+
 const manrope = Manrope({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-manrope",
+})
+
+export const lekton = Lekton({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-lekton",
+  weight: ["400", "700"], 
 })
 
 export const metadata: Metadata = {
@@ -24,14 +40,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en" className={`${geist.variable} ${manrope.variable} antialiased`}>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>{children}</AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+     
+      <body className={`${manrope.variable} ${inter.variable} ${lekton.variable} ${geist.variable}`}>
+        <ThemeProvider attribute="class">
+          <AuthProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

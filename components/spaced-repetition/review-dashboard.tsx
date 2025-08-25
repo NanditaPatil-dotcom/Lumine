@@ -39,51 +39,39 @@ export function ReviewDashboard() {
     <div className="space-y-6">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              <div>
-                <div className="text-2xl font-bold">{reviewStats.dueToday}</div>
-                <div className="text-sm text-muted-foreground">Due Today</div>
-              </div>
-            </div>
+        {/* Due Today */}
+        <Card className="bg-[#4d78e5] text-white border-none shadow-lg rounded-2xl">
+          <CardContent className="p-4 text-center">
+            <Target className="h-6 w-6 mx-auto mb-2" />
+            <div className="text-2xl font-bold">{reviewStats.dueToday}</div>
+            <div className="text-sm">Due Today</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              <div>
-                <div className="text-2xl font-bold">{reviewStats.streak}</div>
-                <div className="text-sm text-muted-foreground">Day Streak</div>
-              </div>
-            </div>
+        {/* Day Streak */}
+        <Card className="bg-[#5546b9] text-white border-none shadow-lg rounded-2xl">
+          <CardContent className="p-4 text-center">
+            <Flame className="h-6 w-6 mx-auto mb-2" />
+            <div className="text-2xl font-bold">{reviewStats.streak}</div>
+            <div className="text-sm">Day Streak</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold">{Math.round(reviewStats.accuracy)}%</div>
-                <div className="text-sm text-muted-foreground">Accuracy</div>
-              </div>
-            </div>
+        {/* Accuracy */}
+        <Card className="bg-[#4d78e5] text-white border-none shadow-lg rounded-2xl">
+          <CardContent className="p-4 text-center">
+            <TrendingUp className="h-6 w-6 mx-auto mb-2" />
+            <div className="text-2xl font-bold">{Math.round(reviewStats.accuracy)}%</div>
+            <div className="text-sm">Accuracy</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold">{reviewStats.reviewsToday}</div>
-                <div className="text-sm text-muted-foreground">Reviewed Today</div>
-              </div>
-            </div>
+        {/* Reviewed Today */}
+        <Card className="bg-[#5546b9] text-white border-none shadow-lg rounded-2xl">
+          <CardContent className="p-4 text-center">
+            <BarChart3 className="h-6 w-6 mx-auto mb-2" />
+            <div className="text-2xl font-bold">{reviewStats.reviewsToday}</div>
+            <div className="text-sm">Reviewed Today</div>
           </CardContent>
         </Card>
       </div>
@@ -92,10 +80,10 @@ export function ReviewDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Review Action */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="bg-black/50 text-white border-none rounded-2xl shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Brain className="h-6 w-6 text-primary" />
+                <Brain className="h-6 w-6 text-white" />
                 Spaced Repetition Review
               </CardTitle>
               <CardDescription>
@@ -106,8 +94,8 @@ export function ReviewDashboard() {
               {dueNotes.length > 0 ? (
                 <>
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-primary mb-2">{dueNotes.length}</div>
-                    <div className="text-lg text-muted-foreground">
+                    <div className="text-4xl font-bold mb-2">{dueNotes.length}</div>
+                    <div className="text-lg">
                       {dueNotes.length === 1 ? "note is" : "notes are"} ready for review
                     </div>
                   </div>
@@ -132,9 +120,9 @@ export function ReviewDashboard() {
                 </>
               ) : (
                 <div className="text-center py-8">
-                  <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <Brain className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">All caught up!</h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-gray-400">
                     No notes are due for review right now. Great job staying on top of your studies!
                   </p>
                 </div>
@@ -145,7 +133,7 @@ export function ReviewDashboard() {
 
         {/* Upcoming Reviews */}
         <div>
-          <Card>
+          <Card className="bg-black/50 text-white border-none rounded-2xl shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -156,10 +144,10 @@ export function ReviewDashboard() {
               {dueNotes.length > 0 ? (
                 <div className="space-y-3">
                   {dueNotes.slice(0, 5).map((note) => (
-                    <div key={note._id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                    <div key={note._id} className="flex items-center justify-between p-2 bg-white/10 rounded">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{note.title}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-gray-300">
                           Due {formatDistanceToNow(new Date(note.spacedRepetition.nextReview), { addSuffix: true })}
                         </div>
                       </div>
@@ -169,13 +157,13 @@ export function ReviewDashboard() {
                     </div>
                   ))}
                   {dueNotes.length > 5 && (
-                    <div className="text-center text-sm text-muted-foreground">+{dueNotes.length - 5} more notes</div>
+                    <div className="text-center text-sm text-gray-400">+{dueNotes.length - 5} more notes</div>
                   )}
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No upcoming reviews</p>
+                  <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">No upcoming reviews</p>
                 </div>
               )}
             </CardContent>
@@ -184,7 +172,7 @@ export function ReviewDashboard() {
       </div>
 
       {/* Study Statistics */}
-      <Card>
+      <Card className="bg-black/50 text-white border-none rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle>Study Statistics</CardTitle>
           <CardDescription>Track your learning progress over time</CardDescription>
@@ -193,19 +181,19 @@ export function ReviewDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold">{reviewStats.totalReviews}</div>
-              <div className="text-sm text-muted-foreground">Total Reviews</div>
+              <div className="text-sm">Total Reviews</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">{reviewStats.streak}</div>
-              <div className="text-sm text-muted-foreground">Current Streak</div>
+              <div className="text-sm">Current Streak</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">{Math.round(reviewStats.accuracy)}%</div>
-              <div className="text-sm text-muted-foreground">Overall Accuracy</div>
+              <div className="text-sm">Overall Accuracy</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">{Math.round(reviewStats.averageResponseTime / 1000)}s</div>
-              <div className="text-sm text-muted-foreground">Avg Response Time</div>
+              <div className="text-sm">Avg Response Time</div>
             </div>
           </div>
         </CardContent>
