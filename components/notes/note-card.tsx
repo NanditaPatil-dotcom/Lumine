@@ -182,7 +182,7 @@ export function NoteCard({
           <span>{formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}</span>
 
           <div
-            className="flex items-center gap-2 rounded-full px-2 py-1 border border-white/10 bg-white/5"
+            className="flex items-center gap-2 rounded-full px-3 py-2 border border-white/20 bg-gray-600/30"
             onClick={(e) => e.stopPropagation()}
           >
             <Brain
@@ -190,13 +190,10 @@ export function NoteCard({
                 note.spacedRepetition.enabled ? "text-primary" : "text-muted-foreground"
               }`}
             />
-            <span className="hidden sm:block">
-              spaced repetition {note.spacedRepetition.enabled ? "on" : "off"}
-            </span>
             <Switch
               checked={note.spacedRepetition.enabled}
               onCheckedChange={handleSpacedRepetitionToggle}
-              className="scale-75"
+              className="scale-90 data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-gray-400"
             />
             {note.spacedRepetition.enabled && note.spacedRepetition.nextReview && (
               <div className="hidden md:flex items-center gap-1 pl-1 ml-1 border-l border-white/10">

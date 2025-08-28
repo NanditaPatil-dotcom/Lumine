@@ -5,10 +5,8 @@ npm install tw-animate-css
 npm install -D tailwindcss@3 postcss autoprefixer
 
 npx tailwindcss init -p
-
+ 
 npm install next-themes
-
-
 ```
 
 # Install backend dependencies
@@ -26,7 +24,6 @@ npm install -D nodemon
 ```bash
 cd .. # Go back to root directory
 ```
-
 # Install frontend dependencies
 ```bash
 npm install

@@ -7,6 +7,7 @@ import { NoteEditor } from "@/components/notes/note-editor"
 import { NotesGrid } from "@/components/notes/notes-grid"
 import { NotesFilters } from "@/components/notes/notes-filters"
 import { Button } from "@/components/ui/button"
+import { StudyTimer } from "@/components/notes/study-timer"
 import { Plus, ArrowLeft } from "lucide-react"
 
 interface Note {
@@ -109,10 +110,13 @@ function NotesContent() {
               )}
             </p>
           </div>
-          <Button onClick={handleCreateNote}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Note
-          </Button>
+          <div className="flex items-center gap-3">
+            <StudyTimer />
+            <Button onClick={handleCreateNote}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Note
+            </Button>
+          </div>
         </div>
       </div>
 

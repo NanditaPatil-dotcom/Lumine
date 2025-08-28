@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ClientLayout({
   children,
@@ -8,8 +9,12 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage =
-    pathname === "/auth/login" || pathname === "/auth/register";
+  const [isAuthPage, setIsAuthPage] = useState(false);
+  
+  useEffect(() => {
+    const authPage = pathname?.startsWith("/auth");
+    setIsAuthPage(authPage);
+  }, [pathname]);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">

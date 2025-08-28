@@ -20,7 +20,7 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.17.2",
+    "mongoose": "^8.18.0",
     "tw-animate-css": "^1.3.7",
     "web-push": "^3.6.6"
   },
