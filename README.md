@@ -34,6 +34,8 @@ npm install react-markdown remark-gfm
 
 npm install date-fns
 
+npm install next-fonts
+
 
 //if they show error, write next to them --legacy-peer-deps
 

@@ -98,6 +98,17 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
   const minutes = Math.floor(elapsedMs / 60000)
   const seconds = Math.floor((elapsedMs % 60000) / 1000)
 
+  // Plant growth stages based on progress
+  const getPlantStage = (progress: number) => {
+    if (progress < 0.1) return "seed"
+    if (progress < 0.3) return "sprout"
+    if (progress < 0.6) return "sapling"
+    if (progress < 0.9) return "young-tree"
+    return "mature-tree"
+  }
+
+  const plantStage = getPlantStage(progress)
+
   return (
     <HoverCard openDelay={100} closeDelay={100}>
       <HoverCardTrigger asChild>
@@ -159,38 +170,85 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
         </div>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent className="w-auto p-4">
-        <div className="flex items-center justify-center">
-          {/* Large live preview only */}
-          <div className="relative h-28 w-28">
-            <svg viewBox="0 0 36 36" className="h-28 w-28 -rotate-90">
-              <path
-                className="text-white/20"
-                stroke="currentColor"
-                strokeWidth="3.5"
-                fill="none"
-                d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32"
-              />
-              <path
-                className={isRunning ? "text-green-400" : "text-green-500/60"}
-                stroke="currentColor"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                fill="none"
-                strokeDasharray={`${Math.max(1, progress * 100)} 100`}
-                d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32"
-              />
-            </svg>
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ transform: `scale(${0.6 + progress * 0.8})` }}
-            >
-              <span className="inline-block h-5 w-5 rounded-full bg-green-400 shadow-[0_0_18px_rgba(34,197,94,0.9)]" />
+      <HoverCardContent className="w-auto p-6">
+        <div className="flex flex-col items-center gap-4">
+          {/* Growing Plant Animation */}
+          <div className="relative h-32 w-32 flex items-center justify-center">
+            {/* Soil/ground */}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-amber-800 rounded-full opacity-60" />
+            
+            {/* Plant based on stage */}
+            {plantStage === "seed" && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                <div className="w-3 h-3 bg-amber-600 rounded-full animate-pulse" />
+              </div>
+            )}
+            
+            {plantStage === "sprout" && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                <div className="w-1 h-6 bg-green-600 rounded-full" />
+                <div className="w-2 h-2 bg-green-500 rounded-full absolute -top-1 left-1/2 transform -translate-x-1/2" />
+              </div>
+            )}
+            
+            {plantStage === "sapling" && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                <div className="w-1.5 h-12 bg-green-700 rounded-full" />
+                <div className="w-4 h-4 bg-green-500 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2" />
+                <div className="w-3 h-3 bg-green-400 rounded-full absolute -top-1 left-1/2 transform -translate-x-1/2" />
+              </div>
+            )}
+            
+            {plantStage === "young-tree" && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                <div className="w-2 h-16 bg-green-800 rounded-full" />
+                <div className="w-8 h-8 bg-green-600 rounded-full absolute -top-4 left-1/2 transform -translate-x-1/2" />
+                <div className="w-6 h-6 bg-green-500 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2" />
+                <div className="w-4 h-4 bg-green-400 rounded-full absolute -top-1 left-1/2 transform -translate-x-1/2" />
+              </div>
+            )}
+            
+            {plantStage === "mature-tree" && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                <div className="w-3 h-20 bg-green-900 rounded-full" />
+                <div className="w-12 h-12 bg-green-700 rounded-full absolute -top-6 left-1/2 transform -translate-x-1/2" />
+                <div className="w-10 h-10 bg-green-600 rounded-full absolute -top-4 left-1/2 transform -translate-x-1/2" />
+                <div className="w-8 h-8 bg-green-500 rounded-full absolute -top-2 left-1/2 transform -translate-x-1/2" />
+                <div className="w-6 h-6 bg-green-400 rounded-full absolute -top-1 left-1/2 transform -translate-x-1/2" />
+                {/* Add some leaves/berries */}
+                <div className="w-2 h-2 bg-green-300 rounded-full absolute -top-8 left-1/2 transform -translate-x-1/2" />
+                <div className="w-2 h-2 bg-green-300 rounded-full absolute -top-6 left-1/2 transform -translate-x-1/2 -ml-3" />
+                <div className="w-2 h-2 bg-green-300 rounded-full absolute -top-6 left-1/2 transform -translate-x-1/2 ml-3" />
+              </div>
+            )}
+            
+            {/* Growth particles when running */}
+            {isRunning && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-green-400 rounded-full animate-ping" />
+                <div className="absolute top-1/2 left-1/2 w-0.5 h-0.5 bg-green-300 rounded-full animate-pulse" />
+              </div>
+            )}
+          </div>
+          
+          {/* Progress indicator */}
+          <div className="text-center">
+            <div className="text-sm text-gray-400 mb-2">
+              {plantStage === "seed" && "🌱 Seed planted"}
+              {plantStage === "sprout" && "🌿 Sprout growing"}
+              {plantStage === "sapling" && "🌱 Sapling emerging"}
+              {plantStage === "young-tree" && "🌳 Young tree"}
+              {plantStage === "mature-tree" && "🌲 Mature tree"}
             </div>
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 h-2.5 w-2.5 -ml-[5px] -mt-[5px] rounded-full bg-green-300 shadow"
-              style={{ transform: `rotate(${progress * 360}deg) translate(0, -24px)` }}
-            />
+            <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300 ease-out"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {Math.round(progress * 100)}% complete
+            </div>
           </div>
         </div>
       </HoverCardContent>

@@ -7,7 +7,7 @@ const rateLimit = require("express-rate-limit")
 require("dotenv").config()
 
 const app = express()
-const PORT = process.env.PORT || 5005
+const PORT = process.env.PORT || 500
 
 // Middleware
 app.use(
