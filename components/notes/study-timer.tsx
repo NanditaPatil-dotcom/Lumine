@@ -1,113 +1,49 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { Play, Pause, RotateCcw } from "lucide-react"
+import { Play, Pause, RotateCcw, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Input } from "@/components/ui/input"
+import { useTimer } from "@/contexts/timer-context"
+import { useState } from "react"
 
 type StudyTimerProps = {
   defaultMinutes?: number
   className?: string
 }
 
-type SessionRecord = {
-  id: string
-  startedAt: number
-  endedAt: number
-  durationMs: number
-}
-
 export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) {
-  const targetMs = defaultMinutes * 60 * 1000
-  const [elapsedMs, setElapsedMs] = useState<number>(0)
-  const [isRunning, setIsRunning] = useState<boolean>(false)
-  const startedAtRef = useRef<number | null>(null)
-  const rafRef = useRef<number | null>(null)
-
-  // Derived progress 0..1
-  const progress = useMemo(() => {
-    const clamped = Math.max(0, Math.min(1, elapsedMs / targetMs))
-    return clamped
-  }, [elapsedMs, targetMs])
-
-  useEffect(() => {
-    if (!isRunning) return
-
-    if (startedAtRef.current == null) startedAtRef.current = Date.now()
-    let last = performance.now()
-
-    const tick = (now: number) => {
-      const delta = now - last
-      last = now
-      setElapsedMs((prev) => {
-        const next = prev + delta
-        if (next >= targetMs) {
-          completeSession(next)
-          return targetMs
-        }
-        return next
-      })
-      rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [isRunning, targetMs])
-
-  const start = () => {
-    if (elapsedMs >= targetMs) setElapsedMs(0)
-    setIsRunning(true)
+  const timerContext = useTimer()
+  
+  // Safety check to ensure context is properly initialized
+  if (!timerContext) {
+    return (
+      <div className={[
+        "flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 backdrop-blur px-3 py-2",
+        className || "",
+      ].join(" ")}>
+        <div className="text-sm text-gray-400">Loading timer...</div>
+      </div>
+    )
   }
+  
+  const { elapsedMs, isRunning, targetMs, progress: timerProgress, start: startTimer, pause: pauseTimer, reset: resetTimer, setDefaultMinutes } = timerContext
 
-  const pause = () => {
-    setIsRunning(false)
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    rafRef.current = null
-  }
-
-  const reset = () => {
-    pause()
-    startedAtRef.current = null
-    setElapsedMs(0)
-  }
-
-  const completeSession = (finalElapsed: number) => {
-    pause()
-    const endedAt = Date.now()
-    const startedAt = startedAtRef.current ?? endedAt - finalElapsed
-    const record: SessionRecord = {
-      id: `${endedAt}`,
-      startedAt,
-      endedAt,
-      durationMs: Math.min(finalElapsed, targetMs),
-    }
-    try {
-      const key = "studySessions"
-      const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null
-      const list: SessionRecord[] = raw ? JSON.parse(raw) : []
-      list.unshift(record)
-      if (list.length > 100) list.pop()
-      localStorage.setItem(key, JSON.stringify(list))
-    } catch {
-      // ignore storage errors
-    }
-    startedAtRef.current = null
-  }
+  const [customMinutes, setCustomMinutes] = useState("")
 
   const minutes = Math.floor(elapsedMs / 60000)
   const seconds = Math.floor((elapsedMs % 60000) / 1000)
 
   // Plant growth stages based on progress
-  const getPlantStage = (progress: number) => {
-    if (progress < 0.1) return "seed"
-    if (progress < 0.3) return "sprout"
-    if (progress < 0.6) return "sapling"
-    if (progress < 0.9) return "young-tree"
+  const getPlantStage = (timerProgress: number) => {
+    if (timerProgress < 0.1) return "seed"
+    if (timerProgress < 0.3) return "sprout"
+    if (timerProgress < 0.6) return "sapling"
+    if (timerProgress < 0.9) return "young-tree"
     return "mature-tree"
   }
 
-  const plantStage = getPlantStage(progress)
+  const plantStage = getPlantStage(timerProgress)
 
   return (
     <HoverCard openDelay={100} closeDelay={100}>
@@ -132,21 +68,21 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
             strokeWidth="3.5"
             strokeLinecap="round"
             fill="none"
-            strokeDasharray={`${Math.max(1, progress * 100)} 100`}
+            strokeDasharray={`${Math.max(1, timerProgress * 100)} 100`}
             d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32"
           />
         </svg>
         {/* Simple plant icon that scales with progress */}
         <div
           className="absolute inset-0 flex items-center justify-center"
-          style={{ transform: `scale(${0.65 + progress * 0.55})` }}
+          style={{ transform: `scale(${0.65 + timerProgress * 0.55})` }}
         >
           <span className="inline-block h-3.5 w-3.5 rounded-full bg-green-400 shadow-[0_0_14px_rgba(34,197,94,0.9)]" />
         </div>
         {/* Knob following the progress */}
         <div
           className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 -ml-1 -mt-1 rounded-full bg-green-300 shadow"
-          style={{ transform: `rotate(${progress * 360}deg) translate(0, -16px)` }}
+          style={{ transform: `rotate(${timerProgress * 360}deg) translate(0, -16px)` }}
         />
         </div>
         {/* Time */}
@@ -156,15 +92,15 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
         {/* Controls */}
         <div className="flex items-center gap-2">
           {isRunning ? (
-            <Button size="icon" variant="outline" className="h-8 w-8 bg-white/10" onClick={pause}>
+            <Button size="icon" variant="outline" className="h-8 w-8 bg-white/10" onClick={pauseTimer}>
               <Pause className="h-4 w-4" />
             </Button>
           ) : (
-            <Button size="icon" className="h-8 w-8" onClick={start}>
+            <Button size="icon" className="h-8 w-8" onClick={startTimer}>
               <Play className="h-4 w-4" />
             </Button>
           )}
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={reset}>
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={resetTimer}>
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
@@ -230,7 +166,75 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
               </div>
             )}
           </div>
-          
+
+          {/* Timer Customizer */}
+          <div className="flex justify-center mt-4">
+            <HoverCard openDelay={200} closeDelay={100}>
+              <HoverCardTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-auto p-4" side="top">
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-center text-gray-300">
+                    Set Timer Duration
+                  </div>
+
+                  {/* Preset durations */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[5, 10, 15, 25, 30, 45, 60, 90].map((duration) => (
+                      <Button
+                        key={duration}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          setDefaultMinutes(duration)
+                          resetTimer()
+                        }}
+                      >
+                        {duration}m
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Custom input */}
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Custom"
+                      value={customMinutes}
+                      onChange={(e) => setCustomMinutes(e.target.value)}
+                      className="h-8 text-xs w-20"
+                      min="1"
+                      max="300"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8 px-2 text-xs"
+                      onClick={() => {
+                        const minutes = parseInt(customMinutes)
+                        if (minutes && minutes > 0 && minutes <= 300) {
+                          setDefaultMinutes(minutes)
+                          resetTimer()
+                          setCustomMinutes("")
+                        }
+                      }}
+                      disabled={!customMinutes || parseInt(customMinutes) <= 0}
+                    >
+                      Set
+                    </Button>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          </div>
+
           {/* Progress indicator */}
           <div className="text-center">
             <div className="text-sm text-gray-400 mb-2">
@@ -243,11 +247,11 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
             <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300 ease-out"
-                style={{ width: `${progress * 100}%` }}
+                style={{ width: `${timerProgress * 100}%` }}
               />
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {Math.round(progress * 100)}% complete
+              {Math.round(timerProgress * 100)}% complete
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Inter, Manrope, Lekton} from "next/font/google"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TimerProvider } from "@/contexts/timer-context"
 import "./globals.css"
 import ClientLayout from "./client-layout"
 
@@ -48,9 +49,11 @@ export default function RootLayout({
      
       <body className={`${manrope.variable} ${inter.variable} ${lekton.variable} ${geist.variable}`}>
         <ThemeProvider attribute="class">
-          <AuthProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </AuthProvider>
+          <TimerProvider defaultMinutes={25}>
+            <AuthProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </AuthProvider>
+          </TimerProvider>
         </ThemeProvider>
       </body>
     </html>
