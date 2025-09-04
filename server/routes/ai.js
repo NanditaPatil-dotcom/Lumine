@@ -3,13 +3,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai")
 const Note = require("../models/Note")
 const Quiz = require("../models/Quiz")
 const auth = require("../middleware/auth")
-const dotenv = require("dotenv");
-
-dotenv.config({ path: "../.env" });
 
 const router = express.Router()
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-console.log("API KEY:", process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 
 // Generate note from prompt
 router.post("/generate-note", auth, async (req, res) => {

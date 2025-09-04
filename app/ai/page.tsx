@@ -5,6 +5,7 @@ import { AIProvider } from "@/contexts/ai-context"
 import { NotesProvider } from "@/contexts/notes-context"
 import { AIAssistant } from "@/components/ai/ai-assistant"
 
+
 export default function AIPage() {
   return (
     <ProtectedLayout>

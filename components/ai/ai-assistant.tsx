@@ -13,7 +13,7 @@ import { useNotes } from "@/contexts/notes-context"
 
 export function AIAssistant() {
   const { loading, generateNote, generateQuiz, generateSummary, generateTags } = useAI()
-  const { notes, createNote } = useNotes()
+  const { notes, refreshNotes } = useNotes()
   const [activeTab, setActiveTab] = useState("generate")
 
   // Generate Note State
@@ -36,9 +36,9 @@ export function AIAssistant() {
 
     try {
       const note = await generateNote(notePrompt, noteCategory)
-      await createNote(note)
       setNotePrompt("")
-      // Show success message or redirect
+      await refreshNotes()
+      // Note is already saved by the AI endpoint
     } catch (error) {
       console.error("Error generating note:", error)
     }

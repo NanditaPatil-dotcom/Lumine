@@ -58,7 +58,7 @@ cd server
 
 MONGODB_URI=mongodb://127.0.0.1:27017/notesapp
 
-JWT_SECRET=e1b6c770f4fed46a3b6e190b05d7af59
+JWT_SECRET=replace-with-a-strong-secret
 
 PORT=5000
 
@@ -66,21 +66,23 @@ NODE_ENV=development
 
 CLIENT_URL=http://localhost:3000
 
-GEMINI_API_KEY=AIzaSyARpQnuyZuC4UfOHIT8sb2SLuS43q_Vk18
+GOOGLE_API_KEY=your-google-api-key-here
 
-VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CVr2LhKALKlaDK71A-1s1fmh_SGJu80PWUOIMc
+VAPID_PUBLIC_KEY=your-public-vapid-key
 
-VAPID_PRIVATE_KEY=uAhx_cbXBK2ZTncsN0fQd-hD7pNmRnDi6YKuH7HRCgA
+VAPID_PRIVATE_KEY=your-private-vapid-key
 
-VAPID_EMAIL=nanditanpatil14@gmail.com
+VAPID_EMAIL=you@example.com
 ```
 
 # .env.local:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=BA9UFLywxF3UtcRezbQZZ07JfF_LkEx4oWsZQbmmY2SlJemk6CVr2LhKALKlaDK71A-1s1fmh_SGJu80PWUOIMc
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-public-vapid-key
 ```
+
+Note: Do not put AI keys in .env.local. Keep GOOGLE_API_KEY only in server/.env.
 
 
 # whats missing?
