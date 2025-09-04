@@ -1,11 +1,9 @@
 "use client"
 
-import { Play, Pause, RotateCcw, Settings } from "lucide-react"
+import { Play, Pause, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { Input } from "@/components/ui/input"
 import { useTimer } from "@/contexts/timer-context"
-import { useState } from "react"
 
 type StudyTimerProps = {
   defaultMinutes?: number
@@ -13,8 +11,10 @@ type StudyTimerProps = {
 }
 
 export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) {
+  // Move all hooks to the top, before any conditional logic
+
   const timerContext = useTimer()
-  
+
   // Safety check to ensure context is properly initialized
   if (!timerContext) {
     return (
@@ -26,13 +26,13 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
       </div>
     )
   }
-  
+
   const { elapsedMs, isRunning, targetMs, progress: timerProgress, start: startTimer, pause: pauseTimer, reset: resetTimer, setDefaultMinutes } = timerContext
 
-  const [customMinutes, setCustomMinutes] = useState("")
-
-  const minutes = Math.floor(elapsedMs / 60000)
-  const seconds = Math.floor((elapsedMs % 60000) / 1000)
+  // Show remaining time instead of elapsed
+  const remainingMs = Math.max(0, targetMs - elapsedMs)
+  const minutes = Math.floor(remainingMs / 60000)
+  const seconds = Math.floor((remainingMs % 60000) / 1000)
 
   // Plant growth stages based on progress
   const getPlantStage = (timerProgress: number) => {
@@ -44,6 +44,15 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
   }
 
   const plantStage = getPlantStage(timerProgress)
+
+  // Derived: target minutes for display and controls
+  const targetMinutesDisplay = Math.max(1, Math.round(targetMs / 60000))
+  const adjustMinutes = (delta: number) => {
+    const next = Math.min(300, Math.max(1, targetMinutesDisplay + delta))
+    if (next !== targetMinutesDisplay) {
+      setDefaultMinutes(next)
+    }
+  }
 
   return (
     <HoverCard openDelay={100} closeDelay={100}>
@@ -167,72 +176,29 @@ export function StudyTimer({ defaultMinutes = 25, className }: StudyTimerProps) 
             )}
           </div>
 
-          {/* Timer Customizer */}
-          <div className="flex justify-center mt-4">
-            <HoverCard openDelay={200} closeDelay={100}>
-              <HoverCardTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-auto p-4" side="top">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-center text-gray-300">
-                    Set Timer Duration
-                  </div>
-
-                  {/* Preset durations */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {[5, 10, 15, 25, 30, 45, 60, 90].map((duration) => (
-                      <Button
-                        key={duration}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => {
-                          setDefaultMinutes(duration)
-                          resetTimer()
-                        }}
-                      >
-                        {duration}m
-                      </Button>
-                    ))}
-                  </div>
-
-                  {/* Custom input */}
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Custom"
-                      value={customMinutes}
-                      onChange={(e) => setCustomMinutes(e.target.value)}
-                      className="h-8 text-xs w-20"
-                      min="1"
-                      max="300"
-                    />
-                    <Button
-                      size="sm"
-                      className="h-8 px-2 text-xs"
-                      onClick={() => {
-                        const minutes = parseInt(customMinutes)
-                        if (minutes && minutes > 0 && minutes <= 300) {
-                          setDefaultMinutes(minutes)
-                          resetTimer()
-                          setCustomMinutes("")
-                        }
-                      }}
-                      disabled={!customMinutes || parseInt(customMinutes) <= 0}
-                    >
-                      Set
-                    </Button>
-                  </div>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+          {/* Timer Customizer: simple "+ 25:00 -" control directly under the plant */}
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => adjustMinutes(1)}
+              aria-label="Increase minutes"
+            >
+              +
+            </Button>
+            <div className="min-w-[80px] text-center font-mono text-sm px-2 py-1 rounded-md bg-black/20 border border-white/10 tabular-nums">
+              {String(targetMinutesDisplay).padStart(2, "0")}:00
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => adjustMinutes(-1)}
+              aria-label="Decrease minutes"
+            >
+              -
+            </Button>
           </div>
 
           {/* Progress indicator */}

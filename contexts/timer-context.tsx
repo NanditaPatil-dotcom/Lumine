@@ -1,6 +1,13 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 type SessionRecord = {
   id: string
@@ -35,118 +42,132 @@ interface TimerProviderProps {
   defaultMinutes?: number
 }
 
-export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderProps) {
-  const [defaultMinutesState, setDefaultMinutesState] = useState(defaultMinutes)
-  const targetMs = defaultMinutesState * 60 * 1000
-  
-  const startedAtRef = useRef<number | null>(null)
-  
-  // Ensure we're on the client side
+export function TimerProvider({
+  children,
+  defaultMinutes = 25,
+}: TimerProviderProps) {
+  // --- Core state ---
   const [isClient, setIsClient] = useState(false)
-  
+  const [defaultMinutesState, setDefaultMinutesState] = useState(defaultMinutes)
+  const [elapsedMs, setElapsedMs] = useState(0)
+  const [isRunning, setIsRunning] = useState(false)
+
+  // --- Refs ---
+  const startedAtRef = useRef<number | null>(null)
+  const targetMsRef = useRef<number>(0)
+
+  // --- Derived values ---
+  const targetMs = useMemo(
+    () => defaultMinutesState * 60 * 1000,
+    [defaultMinutesState]
+  )
+  const progress = useMemo(() => {
+    return Math.max(0, Math.min(1, elapsedMs / targetMs))
+  }, [elapsedMs, targetMs])
+
+  // --- Client detection (SSR safe) ---
   useEffect(() => {
     setIsClient(true)
   }, [])
-  
-  if (!isClient) {
-    return <>{children}</>
-  }
-  
-  // Load timer state from localStorage on mount
-  const [elapsedMs, setElapsedMs] = useState<number>(() => {
+
+  // --- Initialize from localStorage ---
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
     try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("studyTimer:elapsedMs")
-        const wasRunning = localStorage.getItem("studyTimer:isRunning") === "true"
-        const startTime = localStorage.getItem("studyTimer:startTime")
-        
-        if (wasRunning && startTime) {
-          const now = Date.now()
-          const start = parseInt(startTime, 10)
-          const elapsed = now - start
-          const currentTargetMs = defaultMinutes * 60 * 1000
-          
-          // If the timer was running and hasn't completed, restore the start time
-          if (elapsed < currentTargetMs) {
-            startedAtRef.current = start
-          }
-          
-          return Math.min(elapsed, currentTargetMs)
+      const saved = localStorage.getItem("studyTimer:elapsedMs")
+      const wasRunning =
+        localStorage.getItem("studyTimer:isRunning") === "true"
+      const startTime = localStorage.getItem("studyTimer:startTime")
+
+      if (wasRunning && startTime) {
+        const now = Date.now()
+        const start = parseInt(startTime, 10)
+        const elapsed = now - start
+        const currentTargetMs = defaultMinutes * 60 * 1000
+
+        if (elapsed < currentTargetMs) {
+          startedAtRef.current = start
         }
-        
-        return saved ? parseInt(saved, 10) : 0
+
+        setElapsedMs(Math.min(elapsed, currentTargetMs))
+      } else {
+        setElapsedMs(saved ? parseInt(saved, 10) : 0)
       }
-      return 0
+
+      setIsRunning(wasRunning)
     } catch (error) {
       console.warn("Error loading timer state:", error)
-      return 0
     }
-  })
-  
-  const [isRunning, setIsRunning] = useState<boolean>(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("studyTimer:isRunning")
-        return saved === "true"
-      }
-      return false
-    } catch (error) {
-      console.warn("Error loading timer running state:", error)
-      return false
-    }
-  })
+  }, [defaultMinutes])
 
-  // Derived progress 0..1
-  const progress = useMemo(() => {
-    const clamped = Math.max(0, Math.min(1, elapsedMs / targetMs))
-    return clamped
-  }, [elapsedMs, targetMs])
-
-  // Save elapsedMs to localStorage whenever it changes
+  // --- Keep target in sync ---
   useEffect(() => {
+    targetMsRef.current = targetMs
+  }, [targetMs])
+
+  // --- Save elapsed time ---
+  useEffect(() => {
+    if (typeof window === "undefined") return
     try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("studyTimer:elapsedMs", elapsedMs.toString())
-      }
+      localStorage.setItem("studyTimer:elapsedMs", elapsedMs.toString())
     } catch (error) {
       console.warn("Error saving timer state:", error)
     }
   }, [elapsedMs])
 
-
-
+  // --- Timer ticking effect ---
   useEffect(() => {
     if (!isRunning) return
 
-    // Restore start time from localStorage if it exists
     if (startedAtRef.current == null) {
       const savedStartTime = localStorage.getItem("studyTimer:startTime")
-      if (savedStartTime) {
-        startedAtRef.current = parseInt(savedStartTime, 10)
-      } else {
-        startedAtRef.current = Date.now()
-      }
+      startedAtRef.current = savedStartTime
+        ? parseInt(savedStartTime, 10)
+        : Date.now()
     }
-    
+
     const interval = setInterval(() => {
       const now = Date.now()
       const elapsed = now - (startedAtRef.current ?? now)
-      
-      if (elapsed >= targetMs) {
-        completeSession(targetMs)
+
+      if (elapsed >= targetMsRef.current) {
+        // Stop timer
+        setIsRunning(false)
+        const endedAt = Date.now()
+        const startedAt = startedAtRef.current ?? endedAt - elapsed
+        const record: SessionRecord = {
+          id: `${endedAt}`,
+          startedAt,
+          endedAt,
+          durationMs: Math.min(elapsed, targetMsRef.current),
+        }
+
+        try {
+          const key = "studySessions"
+          const raw = localStorage.getItem(key)
+          const list: SessionRecord[] = raw ? JSON.parse(raw) : []
+          list.unshift(record)
+          if (list.length > 100) list.pop()
+          localStorage.setItem(key, JSON.stringify(list))
+        } catch {
+          /* ignore storage errors */
+        }
+
+        startedAtRef.current = null
+        localStorage.setItem("studyTimer:isRunning", "false")
       } else {
         setElapsedMs(elapsed)
       }
-    }, 100) // Update every 100ms for smooth display
+    }, 100)
 
     return () => clearInterval(interval)
-  }, [isRunning, targetMs])
+  }, [isRunning])
 
-  // Handle page visibility changes to ensure timer continues running
+  // --- Visibility change (tab switch) ---
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (isRunning && startedAtRef.current) {
-        // Recalculate elapsed time when page becomes visible again
         const now = Date.now()
         const elapsed = now - startedAtRef.current
         if (elapsed < targetMs) {
@@ -155,20 +176,20 @@ export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderPr
       }
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [isRunning, targetMs])
 
+  // --- Control functions ---
   const start = () => {
     try {
       if (elapsedMs >= targetMs) setElapsedMs(0)
       const startTime = Date.now()
       startedAtRef.current = startTime
       setIsRunning(true)
-      if (typeof window !== "undefined") {
-        localStorage.setItem("studyTimer:isRunning", "true")
-        localStorage.setItem("studyTimer:startTime", startTime.toString())
-      }
+      localStorage.setItem("studyTimer:isRunning", "true")
+      localStorage.setItem("studyTimer:startTime", startTime.toString())
     } catch (error) {
       console.warn("Error starting timer:", error)
     }
@@ -177,10 +198,7 @@ export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderPr
   const pause = () => {
     try {
       setIsRunning(false)
-      if (typeof window !== "undefined") {
-        localStorage.setItem("studyTimer:isRunning", "false")
-        // Don't remove startTime immediately - keep it for potential resume
-      }
+      localStorage.setItem("studyTimer:isRunning", "false")
     } catch (error) {
       console.warn("Error pausing timer:", error)
     }
@@ -191,10 +209,8 @@ export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderPr
       pause()
       startedAtRef.current = null
       setElapsedMs(0)
-      if (typeof window !== "undefined") {
-        localStorage.setItem("studyTimer:elapsedMs", "0")
-        localStorage.removeItem("studyTimer:startTime")
-      }
+      localStorage.setItem("studyTimer:elapsedMs", "0")
+      localStorage.removeItem("studyTimer:startTime")
     } catch (error) {
       console.warn("Error resetting timer:", error)
     }
@@ -202,29 +218,6 @@ export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderPr
 
   const setDefaultMinutes = (minutes: number) => {
     setDefaultMinutesState(minutes)
-  }
-
-  const completeSession = (finalElapsed: number) => {
-    pause()
-    const endedAt = Date.now()
-    const startedAt = startedAtRef.current ?? endedAt - finalElapsed
-    const record: SessionRecord = {
-      id: `${endedAt}`,
-      startedAt,
-      endedAt,
-      durationMs: Math.min(finalElapsed, targetMs),
-    }
-    try {
-      const key = "studySessions"
-      const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null
-      const list: SessionRecord[] = raw ? JSON.parse(raw) : []
-      list.unshift(record)
-      if (list.length > 100) list.pop()
-      localStorage.setItem(key, JSON.stringify(list))
-    } catch {
-      // ignore storage errors
-    }
-    startedAtRef.current = null
   }
 
   const value: TimerContextType = {
@@ -238,5 +231,13 @@ export function TimerProvider({ children, defaultMinutes = 25 }: TimerProviderPr
     setDefaultMinutes,
   }
 
-  return <TimerContext.Provider value={value}>{children}</TimerContext.Provider>
+  // --- Render ---
+  if (!isClient) {
+    // Render children as-is during SSR to avoid hydration mismatch
+    return <>{children}</>
+  }
+
+  return (
+    <TimerContext.Provider value={value}>{children}</TimerContext.Provider>
+  )
 }

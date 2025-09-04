@@ -140,7 +140,7 @@ export function CalendarGrid({ onCreateEvent }: CalendarGridProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <div class="title5" className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 font-inter">
             <CalendarIcon className="h-5 w-5" />
             {monthNames[month]} {year}

@@ -41,7 +41,7 @@ interface CalendarContextType {
 const CalendarContext = createContext<CalendarContextType | undefined>(undefined)
 
 export function CalendarProvider({ children }: { children: React.ReactNode }) {
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -50,20 +50,25 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token")
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    }
+  }
+
   useEffect(() => {
-    if (user && token) {
+    if (user) {
       fetchEvents()
     }
-  }, [user, token])
+  }, [user])
 
   const fetchEvents = async () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_URL}/api/calendar/events`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       })
 
       if (!response.ok) throw new Error("Failed to fetch events")
@@ -87,10 +92,7 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       const response = await fetch(`${API_URL}/api/calendar/events`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(eventData),
       })
 
@@ -166,10 +168,7 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       const response = await fetch(`${API_URL}/api/calendar/events/${id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates),
       })
 
@@ -192,9 +191,7 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       const response = await fetch(`${API_URL}/api/calendar/events/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       })
 
       if (!response.ok) throw new Error("Failed to delete event")
