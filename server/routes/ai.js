@@ -47,55 +47,175 @@ router.post("/generate-note", auth, async (req, res) => {
   }
 })
 
-// Generate quiz from note
+// Generate quiz from note (robust with JSON cleaning and offline fallback)
 router.post("/generate-quiz/:noteId", auth, async (req, res) => {
   try {
-    const { questionCount = 5, difficulty = 3 } = req.body
+    const { questionCount = 5, difficulty = 3 } = req.body;
+
+    const count = Math.max(1, Math.min(20, Number(questionCount) || 5));
+    const diff = Math.max(1, Math.min(5, Number(difficulty) || 3));
 
     const note = await Note.findOne({
       _id: req.params.noteId,
       author: req.user._id,
-    })
+    });
 
     if (!note) {
-      return res.status(404).json({ message: "Note not found" })
+      return res.status(404).json({ message: "Note not found" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    // Helpers
+    const stripCodeFences = (text) => {
+      if (!text) return "";
+      let t = String(text).trim();
+      // remove ```json ... ``` or ``` ... ```
+      t = t.replace(/^```json\s*/i, "").replace(/^```\s*/i, "");
+      t = t.replace(/\s*```$/i, "");
+      // try to extract JSON array/object if extra text exists
+      const startIdx = t.indexOf("[");
+      const endIdx = t.lastIndexOf("]");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        return t.slice(startIdx, endIdx + 1);
+      }
+      return t;
+    };
 
-    const prompt = `Based on this note content, create ${questionCount} quiz questions:
+    const coerceQuestionShape = (q) => {
+      // Normalize fields and ensure schema compatibility
+      const base = {
+        question: String(q.question || "").trim() || "Answer the question based on the note content.",
+        type: ["multiple-choice", "true-false", "short-answer", "flashcard"].includes(q.type)
+          ? q.type
+          : "short-answer",
+        options: Array.isArray(q.options) ? q.options.slice(0, 6) : undefined,
+        correctAnswer: typeof q.correctAnswer === "string" ? q.correctAnswer : "",
+        explanation: typeof q.explanation === "string" ? q.explanation : "",
+        difficulty: Math.max(1, Math.min(5, Number(q.difficulty) || diff)),
+      };
+      // For MCQ ensure options and correctAnswer presence
+      if (base.type === "multiple-choice") {
+        if (!base.options || base.options.length < 2) {
+          base.options = ["Option A", "Option B", "Option C", "Option D"];
+        }
+        if (!base.correctAnswer) {
+          base.correctAnswer = base.options[0];
+        }
+      }
+      // For true-false normalize answers
+      if (base.type === "true-false") {
+        base.options = ["true", "false"];
+        if (!base.correctAnswer || !["true", "false"].includes(String(base.correctAnswer).toLowerCase())) {
+          base.correctAnswer = "true";
+        } else {
+          base.correctAnswer = String(base.correctAnswer).toLowerCase();
+        }
+      }
+      return base;
+    };
 
-Title: ${note.title}
-Content: ${note.content}
+    const buildFallbackQuestions = (n, c, d) => {
+      const qs = [];
+      const catOptions = Array.from(new Set([n.category || "general", "general", "work", "study", "personal"]));
+      // 1. Topic
+      qs.push({
+        question: `What is the main topic of the note titled "${n.title}"?`,
+        type: "short-answer",
+        correctAnswer: n.title,
+        explanation: "This question checks recognition of the note's primary topic.",
+        difficulty: d,
+      });
+      // 2. Category MCQ
+      qs.push({
+        question: `Which category does this note belong to?`,
+        type: "multiple-choice",
+        options: catOptions,
+        correctAnswer: catOptions[0],
+        explanation: "The first option is the note's saved category.",
+        difficulty: d,
+      });
+      // 3. True/False about AI-generated
+      qs.push({
+        question: `True or False: This note was generated or enhanced by AI.`,
+        type: "true-false",
+        correctAnswer: n.aiGenerated ? "true" : "false",
+        explanation: "Reflects the note's aiGenerated flag.",
+        difficulty: d,
+      });
+      // 4. Detail recall
+      qs.push({
+        question: `Name one key concept or term mentioned in this note.`,
+        type: "short-answer",
+        correctAnswer: "",
+        explanation: "Open-ended recall from the note content.",
+        difficulty: d,
+      });
+      // 5. Application
+      qs.push({
+        question: `Provide one practical application or example related to this note's topic.`,
+        type: "short-answer",
+        correctAnswer: "",
+        explanation: "Assesses ability to apply the concept.",
+        difficulty: d,
+      });
 
-Generate questions with difficulty level ${difficulty}/5. Return a JSON array with this structure:
-[
-  {
-    "question": "Question text",
-    "type": "multiple-choice",
-    "options": ["A", "B", "C", "D"],
-    "correctAnswer": "A",
-    "explanation": "Why this is correct"
-  }
-]
-
-Mix question types: multiple-choice, true-false, and short-answer.`
-
-    const result = await model.generateContent(prompt)
-    let questions
-
-    try {
-      questions = JSON.parse(result.response.text())
-    } catch (parseError) {
-      // Fallback if JSON parsing fails
-      questions = [
-        {
-          question: `What is the main topic of: ${note.title}?`,
+      // Trim or expand to requested count by repeating variants
+      while (qs.length < c) {
+        qs.push({
+          question: `Summarize a key point from this note in one sentence.`,
           type: "short-answer",
-          correctAnswer: note.title,
-          explanation: "Based on the note title and content",
-        },
-      ]
+          correctAnswer: "",
+          explanation: "Checks concise understanding.",
+          difficulty: d,
+        });
+      }
+      return qs.slice(0, c);
+    };
+
+    let questions = [];
+
+    // Try AI first, but don't fail the endpoint if model/key has issues
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `You are a quiz generator.
+Return ONLY a strict JSON array (no code fences, no prose) of ${count} quiz questions about the provided note content.
+Each element must match this TypeScript shape exactly:
+
+type Question = {
+ question: string;
+ type: "multiple-choice" | "true-false" | "short-answer" | "flashcard";
+ options?: string[];           // required for multiple-choice
+ correctAnswer?: string;       // string literal for the correct option or short answer; for true-false use "true" or "false"
+ explanation?: string;         // short explanation
+ difficulty?: number;          // 1..5, default ${diff}
+};
+
+Constraints:
+- Mix question types (MCQ, true-false, short-answer).
+- For MCQ, provide 3-6 plausible options and set correctAnswer to one of them.
+- Keep questions concise and unambiguous.
+- Do not include markdown or backticks, return raw JSON only.
+
+Note Title: ${note.title}
+Note Category: ${note.category || "general"}
+Note Content:
+${String(note.content).slice(0, 6000)}
+`;
+
+      const result = await model.generateContent(prompt);
+      const raw = result?.response?.text?.() ?? "";
+      const cleaned = stripCodeFences(raw);
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        questions = parsed.map(coerceQuestionShape);
+      }
+    } catch (aiErr) {
+      // If AI fails or returns invalid JSON, we'll fallback below.
+      // console.warn("AI generation failed, using fallback:", aiErr?.message || aiErr);
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      questions = buildFallbackQuestions(note, count, diff);
     }
 
     const quiz = new Quiz({
@@ -104,16 +224,16 @@ Mix question types: multiple-choice, true-false, and short-answer.`
       sourceNote: note._id,
       questions,
       aiGenerated: true,
-    })
+    });
 
-    await quiz.save()
+    await quiz.save();
 
-    res.json({ quiz })
+    res.json({ quiz });
   } catch (error) {
-    console.error("Generate quiz error:", error)
-    res.status(500).json({ message: "Error generating quiz with AI" })
+    console.error("Generate quiz error:", error);
+    res.status(500).json({ message: "Error generating quiz" });
   }
-})
+});
 
 // Suggest spaced repetition schedule
 router.post("/suggest-schedule/:noteId", auth, async (req, res) => {
