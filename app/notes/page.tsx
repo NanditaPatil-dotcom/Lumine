@@ -6,9 +6,11 @@ import { useNotes } from "@/contexts/notes-context"
 import { NoteEditor } from "@/components/notes/note-editor"
 import { NotesGrid } from "@/components/notes/notes-grid"
 import { NotesFilters } from "@/components/notes/notes-filters"
+import { QuizList } from "@/components/quiz/quiz-list"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { Plus, ArrowLeft } from "lucide-react"
+import { Plus, ArrowLeft, BookOpen, FileText } from "lucide-react"
 
 interface Note {
   _id: string
@@ -21,6 +23,9 @@ interface Note {
     enabled: boolean
     difficulty: number
     nextReview?: Date
+    reviewCount: number
+    lastReviewed?: Date
+    interval: number
   }
   isPinned: boolean
   isArchived: boolean
@@ -36,6 +41,7 @@ function NotesContent() {
   const { notes, loading, createNote, updateNote } = useNotes()
   const [editingNote, setEditingNote] = useState<Note | null>(null)
   const [isCreating, setIsCreating] = useState(false)
+  const [activeTab, setActiveTab] = useState("notes")
 
   const handleCreateNote = () => {
     setEditingNote(null)
@@ -100,9 +106,9 @@ function NotesContent() {
       <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between p-6">
           <div>
-            <h1 className="text-3xl font-serif font-bold">Notes</h1>
+            <h1 className="text-3xl font-serif font-bold">Knowledge Hub</h1>
             <p className="text-muted-foreground">
-              Organize and manage your knowledge
+              Organize notes and generate quizzes
               {notes.length > 0 && (
                 <span className="ml-2">
                   • {notes.length} note{notes.length !== 1 ? "s" : ""}
@@ -111,27 +117,50 @@ function NotesContent() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={handleCreateNote}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Note
-            </Button>
+            {activeTab === "notes" && (
+              <Button onClick={handleCreateNote}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Note
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <NotesFilters />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <div className="border-b px-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="notes" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Notes
+            </TabsTrigger>
+            <TabsTrigger value="quizzes" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Quizzes
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      {/* Notes Grid */}
-      <div className="flex-1 p-6 overflow-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <TabsContent value="notes" className="flex-1 flex flex-col mt-0">
+          {/* Filters */}
+          <NotesFilters />
+
+          {/* Notes Grid */}
+          <div className="flex-1 p-6 overflow-auto">
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <NotesGrid notes={notes} onEditNote={handleEditNote} />
+            )}
           </div>
-        ) : (
-          <NotesGrid notes={notes} onEditNote={handleEditNote} />
-        )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="quizzes" className="flex-1 p-6 overflow-auto mt-0">
+          <QuizList />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

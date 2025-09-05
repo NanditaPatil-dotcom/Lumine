@@ -11,10 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pin, Archive, Edit, Trash2, MoreVertical, Calendar, Brain } from "lucide-react"
+import { Pin, Archive, Edit, Trash2, MoreVertical, Calendar, Brain, BookOpen } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import ReactMarkdown from "react-markdown"
 import { useCalendar } from "@/contexts/calendar-context"
+import { useAI } from "@/contexts/ai-context"
+import { useToast } from "@/hooks/use-toast"
 
 interface Note {
   _id: string
@@ -27,11 +29,13 @@ interface Note {
     enabled: boolean
     difficulty: number
     nextReview?: Date
-    // interval is referenced by callers; keep optional here so TS is happy if not present
-    interval?: number
+    reviewCount: number
+    lastReviewed?: Date
+    interval: number
   }
   isPinned: boolean
   isArchived: boolean
+  position: { x: number; y: number }
   createdAt: string
   updatedAt: string
 }
@@ -43,6 +47,7 @@ interface NoteCardProps {
   onTogglePin: (id: string) => void
   onToggleArchive: (id: string) => void
   onToggleSpacedRepetition: (id: string, enabled: boolean) => void
+  onGenerateQuiz?: (noteId: string) => void
   isDragging?: boolean
 }
 
@@ -53,10 +58,14 @@ export function NoteCard({
   onTogglePin,
   onToggleArchive,
   onToggleSpacedRepetition,
+  onGenerateQuiz,
   isDragging,
 }: NoteCardProps) {
   const [showFullContent, setShowFullContent] = useState(false)
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false)
   const { createSpacedRepetitionEvent, removeSpacedRepetitionEvents } = useCalendar()
+  const { generateQuiz } = useAI()
+  const { toast } = useToast()
 
   const truncatedContent =
     note.content.length > 140 ? note.content.slice(0, 140) + "…" : note.content
@@ -75,6 +84,29 @@ export function NoteCard({
       }
     } catch (err) {
       console.error("SR toggle failed:", err)
+    }
+  }
+
+  const handleGenerateQuiz = async () => {
+    setIsGeneratingQuiz(true)
+    try {
+      const quiz = await generateQuiz(note._id, 5, note.spacedRepetition?.difficulty || 3)
+      toast({
+        title: "Quiz Generated!",
+        description: `Created "${quiz.title}" with ${quiz.questions.length} questions.`,
+      })
+      if (onGenerateQuiz) {
+        onGenerateQuiz(note._id)
+      }
+    } catch (error) {
+      console.error("Error generating quiz:", error)
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGeneratingQuiz(false)
     }
   }
 
@@ -125,6 +157,13 @@ export function NoteCard({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleArchive(note._id) }}>
                 <Archive className="h-4 w-4 mr-2" /> {note.isArchived ? "Unarchive" : "Archive"}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => { e.stopPropagation(); handleGenerateQuiz() }}
+                disabled={isGeneratingQuiz}
+              >
+                <BookOpen className="h-4 w-4 mr-2" /> 
+                {isGeneratingQuiz ? "Generating..." : "Generate Quiz"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

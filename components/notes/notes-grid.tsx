@@ -16,7 +16,9 @@ interface Note {
     enabled: boolean
     difficulty: number
     nextReview?: Date
-    interval?: number
+    reviewCount: number
+    lastReviewed?: Date
+    interval: number
   }
   isPinned: boolean
   isArchived: boolean
@@ -124,9 +126,15 @@ export function NotesGrid({ notes, onEditNote }: NotesGridProps) {
                           spacedRepetition: {
                             ...note.spacedRepetition,
                             enabled,
+                            reviewCount: note.spacedRepetition.reviewCount || 0,
+                            interval: note.spacedRepetition.interval || 3,
                           },
                         })
                       }
+                      onGenerateQuiz={(noteId) => {
+                        // Quiz generation is handled in the note card component
+                        console.log("Quiz generated for note:", noteId)
+                      }}
                       isDragging={snapshot.isDragging}
                     />
                   </div>
