@@ -52,7 +52,7 @@ npm run dev
 
 # whats missing?
 
-1) Ai assistant
+1) Ai assistant(done)
 2) drag and drop
 3) calender viewing the note
 4) upcoming reviews
