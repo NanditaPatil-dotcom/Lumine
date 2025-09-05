@@ -17,6 +17,7 @@ import { useNotes } from "@/contexts/notes-context"
 import { AIProvider, useAI } from "@/contexts/ai-context"
 import { useCalendar } from "@/contexts/calendar-context"
 import { AISuggestions } from "@/components/ai/ai-suggestions"
+import { useToast } from "@/hooks/use-toast"
 import ReactMarkdown from "react-markdown"
 
 interface Note {
@@ -47,6 +48,7 @@ function NoteEditorContent({ note, onSave, onCancel }: NoteEditorProps) {
   const { categories } = useNotes()
   const { generateQuiz } = useAI()
   const { updateCalendarEvent } = useCalendar()
+  const { toast } = useToast()
   const [formData, setFormData] = useState<Partial<Note>>({
     title: "",
     content: "",
@@ -142,13 +144,37 @@ function NoteEditorContent({ note, onSave, onCancel }: NoteEditorProps) {
   }
 
   const handleGenerateQuiz = async () => {
-    if (!note?._id) return
+    if (!note?._id) {
+      console.error("No note ID available for quiz generation")
+      toast({
+        title: "Error",
+        description: "Cannot generate quiz: Note must be saved first",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
-      await generateQuiz(note._id, 5, formData.spacedRepetition?.difficulty || 3)
-      // Show success message or redirect to quiz
+      console.log("Generating quiz for note:", note._id)
+      toast({
+        title: "Generating Quiz",
+        description: "Please wait while we create your quiz...",
+      })
+      
+      const quiz = await generateQuiz(note._id, 5, formData.spacedRepetition?.difficulty || 3)
+      console.log("Quiz generated successfully:", quiz)
+      
+      toast({
+        title: "Success!",
+        description: "Quiz generated successfully! You can view it in the Quizzes tab.",
+      })
     } catch (error) {
       console.error("Error generating quiz:", error)
+      toast({
+        title: "Error",
+        description: "Failed to generate quiz. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
