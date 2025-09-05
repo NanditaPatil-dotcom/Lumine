@@ -60,6 +60,8 @@ npm run dev
 6) theme part (done)
 7) the longer you study the plant grows
 8) adding the color to the note as your choice
+9) generate quizzzzzz
+10) ai at the notes sec navbar
 # suggestions:
 1) whiteboard
 
