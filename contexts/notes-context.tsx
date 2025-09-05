@@ -53,7 +53,7 @@ interface NotesContextType {
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined)
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
 
 export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<Note[]>([])

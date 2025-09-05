@@ -37,7 +37,7 @@ interface SpacedRepetitionContextType {
 
 const SpacedRepetitionContext = createContext<SpacedRepetitionContextType | undefined>(undefined)
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
 
 export function SpacedRepetitionProvider({ children }: { children: React.ReactNode }) {
   const [dueNotes, setDueNotes] = useState<any[]>([])
