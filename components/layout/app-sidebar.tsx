@@ -37,11 +37,6 @@ const navigation = [
     icon: Calendar,
   },
   {
-    name: "AI Assistant",
-    href: "/ai",
-    icon: Sparkles,
-  },
-  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
