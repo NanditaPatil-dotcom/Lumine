@@ -73,8 +73,8 @@ export function AIAssistant() {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="h-full flex flex-col bg-blue-900">
+      <div className="border-b border-border bg-blue-800/95 backdrop-blur supports-[backdrop-filter]:bg-blue-800/60">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="h-8 w-8 text-primary" />
